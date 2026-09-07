@@ -26,6 +26,7 @@ const api = async (path, options = {}) => { const token = localStorage.getItem('
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem('cloth-token')));
+  const [userProfile, setUserProfile] = useState(() => JSON.parse(localStorage.getItem('cloth-profile') || 'null'));
   const [page, setPage] = useState('browse');
   const [selected, setSelected] = useState(seedListings[0]);
   const [listings, setListings] = useState(seedListings);
@@ -48,7 +49,7 @@ function App() {
 
   if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />;
   return <div className="app-shell">
-    <header className="topbar"><button className="brand" onClick={() => go('browse')}><span className="brand-mark">cc</span><span>cloth circle</span></button><nav><button className={page === 'browse' ? 'active' : ''} onClick={() => go('browse')}>Discover</button><button className={page === 'nearby' ? 'active' : ''} onClick={() => go('nearby')}>Nearby</button><button className={page === 'dashboard' ? 'active' : ''} onClick={() => go('dashboard')}>My circle</button><button className={page === 'calculator' ? 'active' : ''} onClick={() => go('calculator')}>Value guide</button><button className={page === 'chat' ? 'active' : ''} onClick={() => go('chat')}>Messages <b>2</b></button></nav><button className="profile-chip" onClick={() => go('profile')}><span className="avatar">KM</span><span>My profile</span><span className="chevron">⌄</span></button></header>
+    <header className="topbar"><button className="brand" onClick={() => go('browse')}><span className="brand-mark">cc</span><span>cloth circle</span></button><nav><button className={page === 'browse' ? 'active' : ''} onClick={() => go('browse')}>Discover</button><button className={page === 'nearby' ? 'active' : ''} onClick={() => go('nearby')}>Nearby</button><button className={page === 'dashboard' ? 'active' : ''} onClick={() => go('dashboard')}>My circle</button><button className={page === 'calculator' ? 'active' : ''} onClick={() => go('calculator')}>Value guide</button><button className={page === 'chat' ? 'active' : ''} onClick={() => go('chat')}>Messages <b>2</b></button></nav><button className="profile-chip" onClick={() => go('profile')}><span className="avatar">{(userProfile?.name || 'CC').slice(0, 2).toUpperCase()}</span><span>My profile</span><span className="chevron">⌄</span></button></header>
     <main>
       {page === 'browse' && <Browse search={search} setSearch={setSearch} category={category} setCategory={setCategory} listings={filtered} openItem={(item) => { setSelected(item); go('detail'); }} />}
       {page === 'nearby' && <Nearby openItem={(item) => { setSelected(item); go('detail'); }} />}
@@ -57,7 +58,7 @@ function App() {
       {page === 'create' && <CreateListing back={() => go('browse')} submit={createListing} />}
       {page === 'manage' && <ManageListings create={() => go('create')} back={() => go('dashboard')} />}
       {page === 'dashboard' && <NegotiationDashboard requests={requests} browse={() => go('create')} manage={() => go('manage')} openChat={(id) => { setActiveSwapId(id || activeSwapId); go('chat'); }} />}
-      {page === 'profile' && <Profile back={() => go('dashboard')} logout={() => { localStorage.removeItem('cloth-token'); setLoggedIn(false); }} />}
+      {page === 'profile' && <Profile back={() => go('dashboard')} logout={() => { localStorage.removeItem('cloth-token'); localStorage.removeItem('cloth-profile'); setUserProfile(null); setLoggedIn(false); }} />}
       {page === 'calculator' && <ValueCalculator back={() => go('browse')} />}
       {page === 'chat' && <NegotiationChatFixed swapId={activeSwapId} messages={messages} draft={draft} setDraft={setDraft} back={() => go('dashboard')} />}
       {page === 'admin' && <AdminCenter />}
@@ -80,6 +81,15 @@ function Login({ onLogin }) {
     const body = await response.json();
     if (!response.ok) { setErrorMessage(body.message || 'Unable to continue'); return; }
     localStorage.setItem('cloth-token', body.data.token);
+    // Fetch and store user profile
+    try {
+      const profileRes = await fetch(`${API_URL}/api/v1/auth/me`, { headers: { authorization: `Bearer ${body.data.token}` } });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        localStorage.setItem('cloth-profile', JSON.stringify(profileData.data));
+        setUserProfile(profileData.data);
+      }
+    } catch {}
     onLogin();
   };
   return <div className="login-page"><div className="login-art"><span className="brand-mark">cc</span><p className="eyebrow">The clothing exchange</p><h1>Keep good clothes<br /><em>in good company.</em></h1><p>Swap thoughtfully, discover locally, and let your wardrobe keep moving.</p></div><form className="login-form" onSubmit={submit}><button className="login-brand" type="button"><span className="brand-mark">cc</span> cloth circle</button><p className="eyebrow">{registering ? 'Join the circle' : 'Welcome back'}</p><h2>{registering ? 'Create your account' : 'Sign in to your circle'}</h2>{registering && <><label>Your name<input name="name" value={form.name} onChange={update} required placeholder="Keira Morgan" /></label><label>City or neighbourhood<input name="location" value={form.location} onChange={update} required placeholder="Bandra, Mumbai" /></label></>}<label>Email address<input name="email" value={form.email} onChange={update} type="email" required placeholder="you@example.com" /></label><label>Password<input name="password" value={form.password} onChange={update} type="password" minLength="8" required placeholder="8 characters minimum" /></label>{errorMessage && <p className="form-error">{errorMessage}</p>}<button className="primary-action" type="submit">{registering ? 'Create account' : 'Continue'} <span>→</span></button><p className="login-note">{registering ? 'Already a member?' : 'New to the circle?'} <button type="button" onClick={() => { setRegistering(!registering); setErrorMessage(''); }}>{registering ? 'Sign in' : 'Create an account'}</button></p></form></div>;
