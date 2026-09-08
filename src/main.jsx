@@ -27,7 +27,7 @@ const api = async (path, options = {}) => { const token = localStorage.getItem('
 function App() {
   const [loggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem('cloth-token')));
   const [userProfile, setUserProfile] = useState(() => JSON.parse(localStorage.getItem('cloth-profile') || 'null'));
-  const [page, setPage] = useState('browse');
+  const [page, setPage] = useState('dashboard');
   const [selected, setSelected] = useState(seedListings[0]);
   const [listings, setListings] = useState(seedListings);
   const [search, setSearch] = useState('');
@@ -49,7 +49,7 @@ function App() {
 
   if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />;
   return <div className="app-shell">
-    <header className="topbar"><button className="brand" onClick={() => go('browse')}><span className="brand-mark">cc</span><span>cloth circle</span></button><nav><button className={page === 'browse' ? 'active' : ''} onClick={() => go('browse')}>Discover</button><button className={page === 'nearby' ? 'active' : ''} onClick={() => go('nearby')}>Nearby</button><button className={page === 'dashboard' ? 'active' : ''} onClick={() => go('dashboard')}>My circle</button><button className={page === 'calculator' ? 'active' : ''} onClick={() => go('calculator')}>Value guide</button><button className={page === 'chat' ? 'active' : ''} onClick={() => go('chat')}>Messages <b>2</b></button></nav><button className="profile-chip" onClick={() => go('profile')}><span className="avatar">{(userProfile?.name || 'CC').slice(0, 2).toUpperCase()}</span><span>My profile</span><span className="chevron">⌄</span></button></header>
+    <header className="topbar"><button className="brand" onClick={() => go('browse')}><span className="brand-mark">cc</span><span>cloth circle</span></button><nav className="desktop-nav"><button className={page === 'browse' ? 'active' : ''} onClick={() => go('browse')}>Discover</button><button className={page === 'nearby' ? 'active' : ''} onClick={() => go('nearby')}>Nearby</button><button className={page === 'dashboard' ? 'active' : ''} onClick={() => go('dashboard')}>My circle</button><button className={page === 'calculator' ? 'active' : ''} onClick={() => go('calculator')}>Value guide</button><button className={page === 'chat' ? 'active' : ''} onClick={() => go('chat')}>Messages <b>2</b></button></nav><button className="profile-chip" onClick={() => go('profile')}><span className="avatar">{(userProfile?.name || 'CC').slice(0, 2).toUpperCase()}</span><span>My profile</span><span className="chevron">⌄</span></button></header>
     <main>
       {page === 'browse' && <Browse search={search} setSearch={setSearch} category={category} setCategory={setCategory} listings={filtered} openItem={(item) => { setSelected(item); go('detail'); }} />}
       {page === 'nearby' && <Nearby openItem={(item) => { setSelected(item); go('detail'); }} />}
@@ -65,6 +65,28 @@ function App() {
     </main>
     {page !== 'admin' && <button className="admin-link" onClick={() => go('admin')}>Admin workspace</button>}
     {toast && <div className="toast">{toast}</div>}
+    <footer className="mobile-tabbar">
+      <button className={page === 'browse' ? 'active' : ''} onClick={() => go('browse')}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span>Discover</span>
+      </button>
+      <button className={page === 'nearby' ? 'active' : ''} onClick={() => go('nearby')}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+        <span>Nearby</span>
+      </button>
+      <button className={page === 'dashboard' ? 'active center' : 'center'} onClick={() => go('dashboard')}>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>My circle</span>
+      </button>
+      <button className={page === 'calculator' ? 'active' : ''} onClick={() => go('calculator')}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Value guide</span>
+      </button>
+      <button className={page === 'chat' ? 'active' : ''} onClick={() => go('chat')}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Messages</span>
+      </button>
+    </footer>
   </div>;
 }
 
